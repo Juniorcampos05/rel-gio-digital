@@ -1,0 +1,96 @@
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Relógio Digital com Temperatura</title>
+    <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        background-color: black;
+        color: white;
+        font-family: 'Courier New', Courier, monospace;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        user-select: none;
+    }
+    #clock {
+        font-size: 4rem;
+        letter-spacing: 0.1rem;
+    }
+    #date {
+        font-size: 1.5rem;
+        margin-top: 10px;
+    }
+    #temperature {
+        font-size: 1.5rem;
+        margin-top: 10px;
+    }
+    </style>
+    </head>
+    <body>
+
+    <div id="clock">--:--:--:--:---</div>
+    <div id="date">--/--/----</div>
+    <div id="temperature">Carregando temperatura...</div>
+
+    <script>
+    // Relógio com milésimos e centésimos
+    function atualizarRelogio() {
+        const agora = new Date();
+
+        const h = String(agora.getHours()).padStart(2, '0');
+        const m = String(agora.getMinutes()).padStart(2, '0');
+        const s = String(agora.getSeconds()).padStart(2, '0');
+        const ms = agora.getMilliseconds(); // 0-999
+
+        // Centésimos: (ms / 10), milésimos: (ms % 10)
+        const cent = String(Math.floor(ms / 10)).padStart(2, '0'); // dois dígitos
+        const mil = String(ms % 10);
+
+        document.getElementById('clock').textContent = `${h}:${m}:${s}:${cent}:${mil}`;
+
+        // Atualiza data
+        const dia = String(agora.getDate()).padStart(2, '0');
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const ano = agora.getFullYear();
+
+        document.getElementById('date').textContent = `Data: ${dia}/${mes}/${ano}`;
+    }
+
+    setInterval(atualizarRelogio, 10);
+    atualizarRelogio();
+
+    // Temperatura - usando OpenWeatherMap
+    // Substitua 'SUA_API_KEY' pela sua chave válida
+    const apiKey = '4db8a35a9006b51c15ec17c855e5aff7';
+    const cidade = 'São Paulo,BR'; // Altere para a cidade desejada
+
+    async function buscarTemperatura() {
+        try {
+        const resposta = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`
+        );
+        if (!resposta.ok) throw new Error('Erro na requisição da temperatura');
+        const dados = await resposta.json();
+
+        const temp = dados.main.temp.toFixed(1);
+        const desc = dados.weather[0].description;
+
+        document.getElementById('temperature').textContent = `Temperatura em ${dados.name}: ${temp}°C - ${desc}`;
+        } catch (erro) {
+        document.getElementById('temperature').textContent = ' ';
+        console.error(erro);
+        }
+    }
+
+    buscarTemperatura();
+    // Atualiza temperatura a cada 10 minutos
+    setInterval(buscarTemperatura, 600000);
+    </script>
+
+    </body>
+    </html>
